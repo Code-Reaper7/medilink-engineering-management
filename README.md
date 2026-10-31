@@ -1,2 +1,12 @@
 # medilink-engineering-management
 Software Engineering Management assignment simulating the development workflow, coordination, incident management, and continuous improvement of the MediLink Appointment Platform.
+
+## **Work in Progress (WIP) Limit**
+
+The MediLink team has established a **WIP limit of 3 tasks** in the In Progress column.
+
+This limit was selected because the team consists of four members, including one Engineering Manager. Limiting active development to three tasks helps prevent excessive multitasking, reduces context switching, and encourages developers to complete existing work before starting new tasks.
+
+When the WIP limit is reached, team members should prioritize completing current tasks, resolving blockers, or assisting with code reviews instead of starting additional work.
+
+The Engineering Manager will monitor WIP during the development cycle and help maintain a balanced workflow.
