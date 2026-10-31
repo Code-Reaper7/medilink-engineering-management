@@ -61,3 +61,30 @@ class MediLinkService:
 
         self.reminder_queue.clear()
         return sent
+
+    def search_available_appointments(self, appointment_date=None, clinic_type=None):
+        results = []
+
+        for slot in self.slots.values():
+
+            # Skip already booked appointments
+            if slot.booked:
+                continue
+
+            # Filter by date
+            if appointment_date is not None:
+                if slot.starts_at.date() != appointment_date:
+                    continue
+
+            # Filter by clinic type
+            if clinic_type is not None:
+                if slot.clinic_type.lower() != clinic_type.lower():
+                    continue
+
+            results.append(slot)
+
+        # Sort appointments by date and time
+        results.sort(key=lambda slot: slot.starts_at)
+
+        return results
+
