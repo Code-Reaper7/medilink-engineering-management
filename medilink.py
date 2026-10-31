@@ -88,3 +88,46 @@ class MediLinkService:
 
         return results
 
+    def reschedule_appointment(self, appointment_id, new_slot_id):
+
+        if appointment_id not in self.appointments:
+            raise ValueError("Appointment not found")
+
+        appointment = self.appointments[appointment_id]
+
+        if appointment.status != "booked":
+            raise ValueError("Cannot reschedule a cancelled appointment")
+
+        if new_slot_id not in self.slots:
+            raise ValueError("Appointment slot not found")
+
+        old_slot_id = appointment.slot_id
+
+        if old_slot_id == new_slot_id:
+            raise ValueError("Please select a different time slot")
+
+        new_slot = self.slots[new_slot_id]
+
+        if new_slot.booked:
+            raise ValueError("Appointment slot unavailable")
+
+        # Release old appointment slot
+        self.slots[old_slot_id].booked = False
+
+        # Reserve new appointment slot
+        new_slot.booked = True
+
+        # Update appointment
+        appointment.slot_id = new_slot_id
+
+        # Ensure reminder is scheduled
+        self.reminder_queue.add(appointment_id)
+
+        return {
+            "appointment_id": appointment_id,
+            "old_slot_id": old_slot_id,
+            "new_slot_id": new_slot_id,
+            "message": "Appointment rescheduled successfully"
+        }
+
+
