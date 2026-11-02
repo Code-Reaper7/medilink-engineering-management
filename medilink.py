@@ -29,6 +29,9 @@ class MediLinkService:
         )
 
     def book_appointment(self, appointment_id, slot_id):
+        if appointment_id in self.appointments:
+            raise ValueError("Appointment already exists")
+
         slot = self.slots[slot_id]
 
         if slot.booked:
@@ -129,5 +132,4 @@ class MediLinkService:
             "new_slot_id": new_slot_id,
             "message": "Appointment rescheduled successfully"
         }
-
 
