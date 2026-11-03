@@ -10,3 +10,13 @@ This limit was selected because the team consists of four members, including one
 When the WIP limit is reached, team members should prioritize completing current tasks, resolving blockers, or assisting with code reviews instead of starting additional work.
 
 The Engineering Manager will monitor WIP during the development cycle and help maintain a balanced workflow.
+
+## Booking safeguards
+
+Each appointment slot accepts only one confirmed booking. A booking attempt for an
+already-booked slot is rejected, and cancelling an appointment more than once is
+ignored so it cannot release a slot that another patient has booked.
+
+Simultaneous booking attempts are out of scope for this in-memory implementation;
+handling them safely would require concurrency control or a transactional
+persistent data store.
