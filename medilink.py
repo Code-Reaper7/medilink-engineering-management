@@ -49,6 +49,9 @@ class MediLinkService:
     def cancel_appointment(self, appointment_id):
         appointment = self.appointments[appointment_id]
 
+        if appointment.status == "cancelled":
+            return
+
         appointment.status = "cancelled"
         self.slots[appointment.slot_id].booked = False
 
@@ -135,4 +138,3 @@ class MediLinkService:
             "new_slot_id": new_slot_id,
             "message": "Appointment rescheduled successfully"
         }
-
