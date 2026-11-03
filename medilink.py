@@ -32,6 +32,9 @@ class MediLinkService:
         if appointment_id in self.appointments:
             raise ValueError("Appointment already exists")
 
+        if slot_id not in self.slots:
+            raise ValueError("Appointment slot not found")
+
         slot = self.slots[slot_id]
 
         if slot.booked:
