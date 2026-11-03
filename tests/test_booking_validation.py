@@ -23,7 +23,7 @@ class TestBookingValidation(unittest.TestCase):
             self.service.book_appointment(1, 101)
 
     def test_booking_nonexistent_slot_raises_value_error(self):
-        with self.assertRaises(KeyError):
+        with self.assertRaises(ValueError):
             self.service.book_appointment(2, 999)
 
 
