@@ -114,6 +114,28 @@ Raises `ValueError` with one of these:
 | test_double_booking.py | double booking | #4 |
 | test_booking_validation.py | booking validation | #5 |
 
+## Logging and incident monitoring
+
+Configure logging at the application entry point:
+
+```python
+from medilink import configure_logging
+
+configure_logging()
+```
+
+Appointment booking, cancellation, and reminder processing emit JSON log entries
+with timestamps, operation names, identifiers, and failures. Error entries use
+`ERROR` level and include the exception type and message. Logs contain no patient
+names, contact details, clinical details, or other patient information.
+
+For a lightweight production check, send application logs to the service's
+central log destination and alert on `level=ERROR` with events ending in
+`_failed`. During an incident, filter by the event and appointment/slot
+identifier, record the timestamp and error message, then reproduce the failure
+with the relevant appointment test before closing the incident. Never copy
+patient information into log messages or incident tickets.
+
 Before something goes to Done:
 1. run all the tests locally before opening the PR
 2. put "Closes #N" in the PR and say what you tested

@@ -1,5 +1,37 @@
 from dataclasses import dataclass
 from datetime import datetime
+import json
+import logging
+import sys
+
+
+logger = logging.getLogger("medilink")
+logger.addHandler(logging.NullHandler())
+
+
+class JsonLogFormatter(logging.Formatter):
+    def format(self, record):
+        entry = {
+            "timestamp": self.formatTime(record, "%Y-%m-%dT%H:%M:%S%z"),
+            "level": record.levelname,
+            "message": record.getMessage(),
+        }
+        if hasattr(record, "event"):
+            entry["event"] = record.event
+        for field in ("appointment_id", "slot_id", "error_type", "error"):
+            if hasattr(record, field):
+                entry[field] = getattr(record, field)
+        return json.dumps(entry, sort_keys=True)
+
+
+def configure_logging(stream=None, level=logging.INFO):
+    """Configure application logs for a command-line or service entry point."""
+    handler = logging.StreamHandler(stream or sys.stderr)
+    handler.setFormatter(JsonLogFormatter())
+    logger.handlers.clear()
+    logger.addHandler(handler)
+    logger.setLevel(level)
+    logger.propagate = False
 
 
 @dataclass
@@ -29,46 +61,106 @@ class MediLinkService:
         )
 
     def book_appointment(self, appointment_id, slot_id):
-        if appointment_id in self.appointments:
-            raise ValueError("Appointment already exists")
+        try:
+            if appointment_id in self.appointments:
+                raise ValueError("Appointment already exists")
 
-        if slot_id not in self.slots:
-            raise ValueError("Appointment slot not found")
+            if slot_id not in self.slots:
+                raise ValueError("Appointment slot not found")
 
-        slot = self.slots[slot_id]
+            slot = self.slots[slot_id]
 
-        if slot.booked:
-            raise ValueError("Appointment slot unavailable")
+            if slot.booked:
+                raise ValueError("Appointment slot unavailable")
 
-        slot.booked = True
-        self.appointments[appointment_id] = Appointment(
-            appointment_id, slot_id
+            slot.booked = True
+            self.appointments[appointment_id] = Appointment(
+                appointment_id, slot_id
+            )
+            self.reminder_queue.add(appointment_id)
+        except (KeyError, ValueError) as error:
+            logger.error(
+                "appointment booking failed",
+                extra={
+                    "event": "appointment_booking_failed",
+                    "appointment_id": appointment_id,
+                    "slot_id": slot_id,
+                    "error_type": type(error).__name__,
+                    "error": str(error),
+                },
+            )
+            raise
+
+        logger.info(
+            "appointment booked",
+            extra={
+                "event": "appointment_booked",
+                "appointment_id": appointment_id,
+                "slot_id": slot_id,
+            },
         )
-        self.reminder_queue.add(appointment_id)
 
     def cancel_appointment(self, appointment_id):
-        appointment = self.appointments[appointment_id]
+        try:
+            appointment = self.appointments[appointment_id]
 
-        if appointment.status == "cancelled":
-            return
+            if appointment.status == "cancelled":
+                return
 
-        appointment.status = "cancelled"
-        self.slots[appointment.slot_id].booked = False
+            appointment.status = "cancelled"
+            self.slots[appointment.slot_id].booked = False
 
-        # Remove pending reminders for cancelled appointments
-        self.reminder_queue.discard(appointment_id)
+            # Remove pending reminders for cancelled appointments
+            self.reminder_queue.discard(appointment_id)
+        except (KeyError, ValueError) as error:
+            logger.error(
+                "appointment cancellation failed",
+                extra={
+                    "event": "appointment_cancellation_failed",
+                    "appointment_id": appointment_id,
+                    "error_type": type(error).__name__,
+                    "error": str(error),
+                },
+            )
+            raise
+
+        logger.info(
+            "appointment cancelled",
+            extra={
+                "event": "appointment_cancelled",
+                "appointment_id": appointment_id,
+            },
+        )
 
     def send_reminders(self):
         sent = []
 
         for appointment_id in sorted(self.reminder_queue):
-            appointment = self.appointments[appointment_id]
+            try:
+                appointment = self.appointments[appointment_id]
 
-            # Check the latest status before sending
-            if appointment.status == "booked":
-                sent.append(appointment_id)
+                # Check the latest status before sending
+                if appointment.status == "booked":
+                    sent.append(appointment_id)
+            except (KeyError, ValueError) as error:
+                logger.error(
+                    "appointment reminder failed",
+                    extra={
+                        "event": "appointment_reminder_failed",
+                        "appointment_id": appointment_id,
+                        "error_type": type(error).__name__,
+                        "error": str(error),
+                    },
+                )
+                raise
 
         self.reminder_queue.clear()
+        logger.info(
+            "appointment reminders processed",
+            extra={
+                "event": "appointment_reminders_processed",
+            },
+        )
         return sent
 
     def search_available_appointments(self, appointment_date=None, clinic_type=None):
