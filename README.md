@@ -3,9 +3,9 @@ Software Engineering Management assignment simulating the development workflow, 
 
 ## **Work in Progress (WIP) Limit**
 
-The MediLink team has established a **WIP limit of 4 tasks** in the In Progress column.
+The MediLink team has established a **WIP limit of 3 tasks** in the In Progress column.
 
-This limit was selected because the team consists of four members, including one Engineering Manager. Limiting active development to four tasks helps reduce excessive multitasking while still allowing the team to keep important work moving during the cycle. The cap helps maintain focus, reduce context switching, and encourages developers to complete current work before starting new tasks.
+This limit was selected because the team consists of four members, including one Engineering Manager. Limiting active development to three tasks helps reduce excessive multitasking while still allowing the team to keep important work moving during the cycle. The cap helps maintain focus, reduce context switching, and encourages developers to complete current work before starting new tasks.
 
 When the WIP limit is reached, team members should prioritize completing current tasks, resolving blockers, or assisting with code reviews instead of starting additional work.
 
